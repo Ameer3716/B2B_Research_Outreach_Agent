@@ -52,8 +52,12 @@ function getChromaClient() {
         apiKey: process.env.CHROMA_API_KEY,
         host: cleanHost,
         port: portVal,
-        tenant: process.env.CHROMA_TENANT || "default_tenant",
-        database: process.env.CHROMA_DATABASE || "default_database",
+        // Do NOT default these to "default_tenant"/"default_database" —
+        // those names only mean something for local self-hosted Chroma.
+        // On Chroma Cloud, leaving these undefined lets the SDK
+        // auto-resolve the real tenant + database tied to the API key.
+        tenant: process.env.CHROMA_TENANT || undefined,
+        database: process.env.CHROMA_DATABASE || undefined,
       });
     } else {
       // Local Chroma (Docker / standalone)
@@ -83,6 +87,7 @@ async function getOrCreateTenantCollection(tenantId) {
   // getOrCreateCollection is idempotent — safe to call on every ingest/query.
   const collection = await client.getOrCreateCollection({
     name,
+    embeddingFunction: null,
     metadata: {
       description: `Knowledge base for tenant ${tenantId}`,
       tenant_id: tenantId,
