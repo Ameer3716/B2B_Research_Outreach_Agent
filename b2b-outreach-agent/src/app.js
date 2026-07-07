@@ -18,7 +18,14 @@ const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 const app = express();
 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  origin: (origin, callback) => {
+    const allowed = process.env.CORS_ORIGIN || "http://localhost:3000";
+    if (!origin || allowed === "*" || allowed.split(",").map(s => s.trim()).includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());
