@@ -18,9 +18,12 @@
 
 "use strict";
 
-const { ChromaClient } = require("chromadb");
+const { ChromaClient, CloudClient } = require("chromadb");
 
-const CHROMA_URL = process.env.CHROMA_URL || "http://localhost:8000";
+const isCloud = !!(process.env.CHROMA_API_KEY || process.env.CHROMA_HOST);
+const CHROMA_URL = isCloud
+  ? `https://${process.env.CHROMA_HOST || "api.trychroma.com"}`
+  : (process.env.CHROMA_URL || "http://localhost:8000");
 
 /**
  * Collection name for a given tenant.
@@ -39,28 +42,19 @@ let _client = null;
 
 function getChromaClient() {
   if (!_client) {
-    if (process.env.CHROMA_API_KEY || process.env.CHROMA_HOST) {
-      // Chroma Cloud / Hosted Chroma configuration
+    if (isCloud) {
+      // Chroma Cloud / Hosted Chroma configuration using official CloudClient
       const hostVal = process.env.CHROMA_HOST || "api.trychroma.com";
-      const isHttps = !hostVal.startsWith("http://");
       const cleanHost = hostVal.replace(/^https?:\/\//, "").split(":")[0];
-      const portVal = hostVal.includes(":") ? Number(hostVal.split(":")[1]) : (isHttps ? 443 : 8000);
+      const portVal = hostVal.includes(":") ? Number(hostVal.split(":")[1]) : 443;
 
-      const options = {
-        ssl: isHttps,
+      _client = new CloudClient({
+        apiKey: process.env.CHROMA_API_KEY,
         host: cleanHost,
         port: portVal,
         tenant: process.env.CHROMA_TENANT || "default_tenant",
         database: process.env.CHROMA_DATABASE || "default_database",
-        headers: {}
-      };
-
-      if (process.env.CHROMA_API_KEY) {
-        options.headers["x-chroma-token"] = process.env.CHROMA_API_KEY;
-        options.headers["Authorization"] = `Bearer ${process.env.CHROMA_API_KEY}`;
-      }
-
-      _client = new ChromaClient(options);
+      });
     } else {
       // Local Chroma (Docker / standalone)
       _client = new ChromaClient({ path: CHROMA_URL });
