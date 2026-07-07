@@ -39,7 +39,32 @@ let _client = null;
 
 function getChromaClient() {
   if (!_client) {
-    _client = new ChromaClient({ path: CHROMA_URL });
+    if (process.env.CHROMA_API_KEY || process.env.CHROMA_HOST) {
+      // Chroma Cloud / Hosted Chroma configuration
+      const hostVal = process.env.CHROMA_HOST || "api.trychroma.com";
+      const isHttps = !hostVal.startsWith("http://");
+      const cleanHost = hostVal.replace(/^https?:\/\//, "").split(":")[0];
+      const portVal = hostVal.includes(":") ? Number(hostVal.split(":")[1]) : (isHttps ? 443 : 8000);
+
+      const options = {
+        ssl: isHttps,
+        host: cleanHost,
+        port: portVal,
+        tenant: process.env.CHROMA_TENANT || "default_tenant",
+        database: process.env.CHROMA_DATABASE || "default_database",
+        headers: {}
+      };
+
+      if (process.env.CHROMA_API_KEY) {
+        options.headers["x-chroma-token"] = process.env.CHROMA_API_KEY;
+        options.headers["Authorization"] = `Bearer ${process.env.CHROMA_API_KEY}`;
+      }
+
+      _client = new ChromaClient(options);
+    } else {
+      // Local Chroma (Docker / standalone)
+      _client = new ChromaClient({ path: CHROMA_URL });
+    }
   }
   return _client;
 }
