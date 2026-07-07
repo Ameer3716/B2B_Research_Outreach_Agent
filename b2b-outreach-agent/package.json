@@ -1,0 +1,48 @@
+{
+  "name": "b2b-outreach-agent-backend",
+  "version": "0.1.0",
+  "description": "Milestone 1-4: Backend + RAG + Agent pipeline + Send/Tracking for the B2B Research & Outreach Agent (multi-tenant, Node/Express, Gemini, Chroma)",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "seed": "node scripts/seed.js",
+    "ingest-kb": "node scripts/ingest-kb.js",
+    "setup": "npm install && npm run seed",
+    "test": "jest tests/tenant-isolation.test.js --runInBand",
+    "test:rag": "jest tests/rag-retrieval.test.js --runInBand --testTimeout=60000",
+    "test:pipeline": "jest tests/pipeline.test.js --runInBand --testTimeout=120000",
+    "test:send": "jest tests/send-tracking.test.js --runInBand --testTimeout=120000"
+  },
+  "keywords": [
+    "multi-tenant",
+    "rag",
+    "agents",
+    "b2b",
+    "outreach"
+  ],
+  "author": "Sultan",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "bcryptjs": "^2.4.3",
+    "chromadb": "^3.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0"
+  },
+  "optionalDependencies": {
+    "resend": "^4.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.4",
+    "supertest": "^7.0.0"
+  }
+}

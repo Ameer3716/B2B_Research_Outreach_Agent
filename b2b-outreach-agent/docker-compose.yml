@@ -1,0 +1,28 @@
+# ============================================================================
+# Chroma vector DB — self-hosted for local dev (Milestone 2+)
+#
+# Usage:
+#   docker-compose up -d          # start in background
+#   docker-compose down           # stop (data survives — persisted in volume)
+#   docker-compose down -v        # stop AND wipe all vector data
+#
+# The server listens on http://localhost:8000 by default.
+# Override with CHROMA_URL in your .env if you need a different port.
+# ============================================================================
+
+services:
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: b2b_agent_chroma
+    ports:
+      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    volumes:
+      - chroma_data:/chroma/chroma/
+    restart: unless-stopped
+
+volumes:
+  chroma_data:
+    driver: local
